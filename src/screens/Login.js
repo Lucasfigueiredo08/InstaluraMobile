@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { Navigation } from 'react-native-navigation';
 
+import {goHome} from '../components/Feed';
+
 const width = Dimensions.get('screen').width;
 
 export default class Login extends Component {
@@ -20,11 +22,13 @@ export default class Login extends Component {
   constructor() {
     super();
     this.state = {
-      usuario: '',
-      senha: '',
+      usuario: 'rafael',
+      senha: '123456',
       mensagem: ''
     }
   }
+
+ 
 
   efetuaLogin() {
     const uri = "https://instalura-api.herokuapp.com/api/public/login";
@@ -51,23 +55,31 @@ export default class Login extends Component {
           AsyncStorage.setItem('token', token);
           AsyncStorage.setItem('usuario', this.state.usuario);
 
-
-          
-          Navigation.push(this.props.Login, {
-            component: {
-              name: 'Login',
-              passProps: {
-                text: 'Pushed screen'
-              },
-              options: {
-                topBar: {
-                  title: {
-                    text: 'Pushed screen title'
-                  }
+          Navigation.setRoot({
+            root: {
+              stack: {
+                id: 'App',
+                options: {
+                  // topBar: {
+                  //   visible: false,
+                  // },
+                  topBar: {
+                    height: 0,
+                    visible: null
                 }
+              },
+                children: [
+                  {
+                    component: {
+                      name: 'navigation.playground.Feed', 
+                    }
+                  }
+                ],
               }
             }
-          });
+          })
+          
+
       })
       .catch(e => this.setState({mensagem: e.message}))
   }
