@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import Post from './Post';
 import Api from '../services/api';
+import Notificacao from '../api/Notificacao.android';
 
 export default class Feed extends Component {
 
@@ -15,7 +16,6 @@ export default class Feed extends Component {
     super();
     this.state = {
       fotos: [],
-
     }
   }
 
@@ -37,6 +37,7 @@ export default class Feed extends Component {
   }
 
   like(idFoto) {
+    const listaOriginal = this.state.fotos;
     const foto = this.buscaPorId(idFoto);
 
     AsyncStorage.getItem('usuario')
@@ -63,9 +64,14 @@ export default class Feed extends Component {
         }
 
         this.atualizaFotos(fotoAtualizada);
-      })
+      });
 
-     Api.get(`/fotos/${idFoto}/like`);
+     Api.post(`/fotos/${idFoto}/like`)
+      .catch(e => 
+        {
+          this.setState({fotos: listaOriginal})
+          Notificacao.exibe('Ops..', 'Algo deu errado!')
+        });
   }
 
   adicionaComentario(idFoto, valorComentario, inputComentario) {
@@ -85,7 +91,8 @@ export default class Feed extends Component {
         }
         this.atualizaFotos(fotoAtualizada);
         inputComentario.clear();
-      });
+      })
+      .catch(e => Notificacao.exibe('Ops!', 'Não foi possivel adicionar um novo comentário.'));
   }
 
   render() {

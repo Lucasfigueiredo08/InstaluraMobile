@@ -35,6 +35,10 @@ export default class api {
         };
       })
       .then(requestInfo => fetch(uri, requestInfo))
-      .then(resposta => resposta.json());
+      .then(resposta => {
+        if(resposta.ok)
+          resposta.json()
+        throw new Error('Houve um erro!')
+      });
     }
 }
