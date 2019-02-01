@@ -58,27 +58,38 @@ export default class Login extends Component {
           Navigation.setRoot({
             root: {
               stack: {
-                id: 'App',
-                options: {
-                  // topBar: {
-                  //   visible: false,
-                  // },
-                  topBar: {
-                    height: 0,
-                    visible: null
-                }
-              },
+                //id: 'App',
+               
                 children: [
                   {
                     component: {
                       name: 'navigation.playground.Feed', 
+                      options: {
+                        topBar: {
+                          title: {
+                            text:  'INSTALURA'
+                          }
+                      }
+                    },
                     }
                   }
                 ],
               }
             }
           })
-          
+          // Navigation.push(this.props.componentId, {
+          //   component: {
+          //     name: 'navigation.playground.Feed',
+      
+          //     options: {
+          //       topBar: {
+          //         title: {
+          //           text: 'INSTALURA'
+          //         }
+          //       }
+          //     }
+          //   }
+          // });
 
       })
       .catch(e => this.setState({mensagem: e.message}))

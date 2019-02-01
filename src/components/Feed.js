@@ -4,11 +4,18 @@ import {
   StyleSheet,
   FlatList,
   Platform,
-  AsyncStorage
+  AsyncStorage,
+  View,
+  ScrollView
+
 } from 'react-native';
 import Post from './Post';
+import HeaderUsuario from './HeaderUsuario';
 import Api from '../services/api';
 import Notificacao from '../api/Notificacao.android';
+import api from '../services/api';
+import { Navigation } from 'react-native-navigation';
+
 
 export default class Feed extends Component {
 
@@ -20,8 +27,20 @@ export default class Feed extends Component {
   }
 
   componentDidMount() {
+    this.load();
+    let uri = "/fotos/";
+    if (this.props.usuario) {
+      uri = `/public/fotos/${this.props.usuario}`;
+    }
+
+    Api.get(uri)
+      .then(json => this.setState({ fotos: json }))
+  }
+
+  load() {
     Api.get('/fotos')
-    .then(json => this.setState({ fotos: json }))
+      .then(json => this.setState({ fotos: json, status: 'NORMAL' }))
+      .catch(e => this.setState({ status: 'FALHA_CARREGAMENTO' }));
   }
 
 
@@ -66,12 +85,11 @@ export default class Feed extends Component {
         this.atualizaFotos(fotoAtualizada);
       });
 
-     Api.post(`/fotos/${idFoto}/like`)
-      .catch(e => 
-        {
-          this.setState({fotos: listaOriginal})
-          Notificacao.exibe('Ops..', 'Algo deu errado!')
-        });
+    Api.post(`/fotos/${idFoto}/like`)
+      .catch(e => {
+        this.setState({ fotos: listaOriginal })
+        Notificacao.exibe('Ops..', 'Algo deu errado!')
+      });
   }
 
   adicionaComentario(idFoto, valorComentario, inputComentario) {
@@ -82,7 +100,7 @@ export default class Feed extends Component {
     const comentario = {
       texto: valorComentario
     };
-     Api.post(`/fotos/${idFoto}/comment`, comentario)
+    Api.post(`/fotos/${idFoto}/comment`, comentario)
       .then(comentario => [...foto.comentarios, comentario])
       .then(novaLista => {
         const fotoAtualizada = {
@@ -95,23 +113,63 @@ export default class Feed extends Component {
       .catch(e => Notificacao.exibe('Ops!', 'Não foi possivel adicionar um novo comentário.'));
   }
 
-  render() {
-    return (
+  verPerfilCallback(idFoto) {
+    const foto = this.buscaPorId(idFoto);
 
-      <FlatList style={styles.container}
-        keyExtractor={item => item.id}
-        data={this.state.fotos}
-        renderItem={({ item }) =>
-          <Post foto={item}
-            likeCallback={this.like.bind(this)}
-            comentarioCallback={this.adicionaComentario.bind(this)} />
+    Navigation.push(this.props.componentId, {
+      component: {
+        name: 'navigation.playground.Feed',
+        passProps: {
+          usuario: foto.loginUsuario,
+          fotoDePerfil: foto.urlPerfil,
+          posts: this.state.fotos.length
+        },
+        options: {
+          topBar: {
+            title: {
+              text: foto.loginUsuario
+            }
+          }
         }
-      />
+      }
+    });
+  }
+
+  exibeHeader() {
+    if(this.props.usuario)
+      return <HeaderUsuario usuario={this.props.usuario}
+        fotoDePerfil={this.props.fotoDePerfil} 
+        posts={this.state.fotos.length}/>
+  }
+
+  render() {
+    if (this.state.status === 'FALHA_CARREGAMENTO')
+      return (
+        <TouchableOpacity style={styles.container} onPress={this.load.bind(this)}>
+          <Text style={[styles.texto, styles.titulo]}>Ops..</Text>
+          <Text style={styles.texto}>Não foi possível carregar o feed</Text>
+          <Text style={styles.texto}>Toque para tentar novamente</Text>
+        </TouchableOpacity>
+      );
+    return (
+      <ScrollView>
+        {this.exibeHeader()}
+        <FlatList
+          keyExtractor={item => item.id}
+          data={this.state.fotos}
+          renderItem={({ item }) =>
+            <Post foto={item}
+              likeCallback={this.like.bind(this)}
+              comentarioCallback={this.adicionaComentario.bind(this)}
+              verPerfilCallback={this.verPerfilCallback.bind(this)} />
+          }
+        />
+      </ScrollView>
     );
   }
 }
 
-const margem = Platform.OS == 'ios' ? 20 : 0;
+const margem = Platform.OS == 'ios' ? 100 : 100;
 const styles = StyleSheet.create({
   container: {
     marginTop: margem

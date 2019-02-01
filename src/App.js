@@ -34,6 +34,8 @@ export default () => {
 
   Navigation.registerComponent('navigation.playground.Login', () => Login);
 
+  Navigation.registerComponent('navigation.playground.PerfilUsuario', () => Feed);
+
   // Navigation.events().registerAppLaunchedListener(() => {
   //   Navigation.setRoot({
   //     root: {
@@ -44,25 +46,26 @@ export default () => {
   //   })
   // })s
 
-AsyncStorage.getItem('token')
+  AsyncStorage.getItem('token')
     .then(token => {
       if (token) {
         Navigation.setRoot({
           root: {
             component: {
-              name: 'navigation.playground.Feed'
+              name: 'navigation.playground.Login',
             }
           }
         })
-      }else{
-        Navigation.setRoot({
-          root: {
-            component: {
-              name: 'navigation.playground.Login'
-            }
+      }
+      else
+      Navigation.setRoot({
+        root: {
+          component: {
+            name: 'navigation.playground.Feed'
           }
-        })}
+        }
       })
+    })
     .then(screen =>
       Navigation.events().registerAppLaunchedListener({ screen })
     );
